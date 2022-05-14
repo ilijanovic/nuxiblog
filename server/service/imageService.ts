@@ -8,8 +8,8 @@ export const imageService = {
       width = config.image_width,
       height = config.image_height,
     }: {
-      width: number;
-      height: number;
+      width: number | undefined;
+      height: number | undefined;
     }
   ) {
     return sharp(img)
@@ -26,8 +26,8 @@ export const imageService = {
       width = config.image_width,
       height = config.image_height,
     }: {
-      width: number;
-      height: number;
+      width: number | undefined;
+      height: number | undefined;
     }
   ) {
     return sharp(img)

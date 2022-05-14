@@ -1,5 +1,5 @@
 import { EventHandler } from "h3";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 export interface AuthorI<T = {}> {
   name: string;
@@ -15,6 +15,7 @@ export interface AuthorI<T = {}> {
   username: string;
   email: string;
   password_hash?: string;
+  tempImages: ImageI[];
 }
 
 export interface AuthorLinksI<T = {}> {
@@ -38,10 +39,10 @@ export interface LoginParamsI {
   password: string;
   username: string;
 }
-export interface ImagesI {
+export interface ImageI {
   src: string;
   webp_src: string;
-  imageId: mongoose.Types.ObjectId;
+  name: string;
 }
 export interface BlogI<T = {}> {
   title: string;
@@ -50,11 +51,12 @@ export interface BlogI<T = {}> {
   body: string;
   tags: string[];
   props: T;
-  images: ImagesI[];
+  images: ImageI[];
   authorId: mongoose.Types.ObjectId;
   comments: CommentI[];
   likeCount: number;
   likes: mongoose.Types.ObjectId[];
+
   thumbnail: {
     src: string;
     src_webp: string;

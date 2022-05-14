@@ -101,11 +101,15 @@ export const fileService = {
       });
     });
   },
-  async saveImages(directory: string, images: Buffer[], extension: string) {
+  async saveImages(
+    directory: string,
+    images: Buffer[],
+    extension: "webp" | "png" | "jpg" | "jpeg"
+  ) {
     if (!(await this.directoryExist(directory))) {
       await this.createDirectory(directory);
     }
-    let id = utilsService.makeid(10);
+    let id = utilsService.makeid(20) + Date.now().toString();
     return Promise.all(
       images.map(async (img) => {
         let path = directory + "/" + id + `.${extension}`;
@@ -117,8 +121,8 @@ export const fileService = {
   async formatToPngs(
     images: FileI[],
     resizeOptions = {
-      height: config.image_height,
-      width: config.image_width,
+      height: config.image_height as number | undefined,
+      width: config.image_width as number | undefined,
     }
   ) {
     return Promise.all(
@@ -128,8 +132,8 @@ export const fileService = {
   async formatToWebps(
     images: FileI[],
     resizeOptions = {
-      height: config.image_height,
-      width: config.image_width,
+      height: config.image_height as number | undefined,
+      width: config.image_width as number | undefined,
     }
   ) {
     return Promise.all(

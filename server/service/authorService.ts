@@ -1,3 +1,4 @@
+import { ImageI } from "~~/types";
 import { Author } from "../model/author";
 
 function show(show: boolean) {
@@ -12,5 +13,18 @@ export const authorService = {
   },
   findAuthorById(authorId: string, showPassword = false) {
     return Author.findOne({ _id: authorId }).select(show(showPassword));
+  },
+  async addImage(authorId: string, image: ImageI) {
+    await Author.updateOne(
+      { _id: authorId },
+      {
+        $push: {
+          tempImages: {
+            ...image,
+          },
+        },
+      }
+    );
+    return image;
   },
 };

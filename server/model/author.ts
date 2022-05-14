@@ -34,6 +34,19 @@ const schema = new mongoose.Schema({
   },
   blogs: [mongoose.Types.ObjectId],
   props: {},
+  tempImages: [
+    {
+      src: {
+        type: String,
+      },
+      webp_src: {
+        type: String,
+      },
+      name: {
+        type: String,
+      },
+    },
+  ],
   username: {
     type: String,
     trim: true,

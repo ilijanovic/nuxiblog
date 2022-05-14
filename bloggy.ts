@@ -1,20 +1,17 @@
-import { LoginParamsI, RegisterParamsI } from "@/types";
-let ws: WebSocket;
-if (process.client) {
-  ws = new WebSocket("ws://localhost:8080/");
-}
+import { BlogI, LoginParamsI, RegisterParamsI } from "@/types";
+
 export const Bloggy = {
   login(params: LoginParamsI) {
     return $fetch("/api/login", {
       method: "POST",
       body: params,
-    }).then((response) => response);
+    });
   },
   register(params: RegisterParamsI) {
     return $fetch("/api/register", {
       method: "POST",
       body: params,
-    }).then((response) => response);
+    });
   },
   getBlogsByAuthorId(authorId: string) {
     return $fetch("/api/getblogs", {
@@ -41,47 +38,36 @@ export const Bloggy = {
   getCurrentUser() {
     return $fetch("/api/getcurrentuser", { method: "POST" });
   },
-  listen(cb: Function) {
-    if (process.client) {
-      ws.onmessage = (data) => {
-        console.log(ws, data);
-        cb(data);
-      };
-    }
-  },
+
   async createPost({
-    authorId = "",
     body = "",
     categories = [""],
-    comments = [],
-    date = new Date(),
     description = "",
-    editors = [""],
+    editors = [],
     images = [],
-    likeCount = 0,
-    likes = [""],
     props = {},
-    slug = "",
-    tags = [""],
-    thumbnail = "",
+    tags = [],
+    thumbnail = null,
     title = "",
-  }) {
+  }: Omit<BlogI, "thumbnail"> & { thumbnail: File | null }) {
     let data = new FormData();
 
     data.append("title", title);
     data.append("description", description);
-    data.append("date", date.toString());
     data.append("body", body);
     data.append("props", JSON.stringify(props));
 
     images.map((img) => {
-      data.append("images", img);
+      data.append("images", JSON.stringify(img));
     });
 
-    data.append("authorId", authorId);
-    data.append("thumbnail", thumbnail);
+    if (thumbnail) {
+      data.append("thumbnail", thumbnail);
+    }
+
     data.append("categories", JSON.stringify(categories));
     data.append("tags", JSON.stringify(tags));
+    data.append("editors", JSON.stringify(editors));
     return $fetch("/api/createpost", {
       method: "POST",
 

@@ -26,10 +26,6 @@ const schema = new mongoose.Schema({
   props: {},
   images: [
     {
-      imageId: {
-        type: mongoose.Types.ObjectId,
-        default: mongoose.Types.ObjectId,
-      },
       src: {
         type: String,
       },
