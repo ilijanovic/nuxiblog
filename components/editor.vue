@@ -1,88 +1,141 @@
 <template>
   <div class="w-full">
-    <div ref="editor"></div>
+    <div class="nuxiblog__actions">
+      <button
+        class="p-3 hover:bg-gray-100 border"
+        :class="action.selected ? 'bg-blue-100' : ''"
+        v-html="action.icon"
+        v-for="action in defaultActions"
+        :key="action.icon"
+        @click="selectAction(action)"
+        :title="action.title"
+      ></button>
+    </div>
+    <div
+      class="border"
+      @keydown="keyDownFormat"
+      @input="inputFormat"
+      contenteditable="true"
+      ref="editor"
+    ></div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import "@vueup/vue-quill/dist/vue-quill.snow.css";
-import { ImageI } from "~~/types";
+const defaultParagraphSeparator = "p";
 
+const queryCommandState = (command: string) =>
+  document.queryCommandState(command);
+const exec = (command: string, value: undefined | string = undefined) =>
+  document.execCommand(command, false, value);
+
+const queryCommandValue = (command: string) =>
+  document.queryCommandValue(command);
+
+const formatBlock = "formatBlock";
 let emits = defineEmits<{
   (eventName: "update:modelValue", value: string): void;
-  (eventName: "imageUploaded", value: ImageI): void;
 }>();
+function inputFormat({ target }: Event) {
+  let firstChild = (target as HTMLElement).firstChild;
+  let content = target as HTMLElement;
+  if (firstChild && firstChild.nodeType === 3)
+    exec(formatBlock, `<${defaultParagraphSeparator}>`);
+  else if (content.innerHTML === "<br>") content.innerHTML = "";
+  emits("update:modelValue", content.innerHTML);
+}
 
-let editor = ref<HTMLElement>();
-onMounted(async () => {
-  let [{ Quill }, ImageUploader] = await Promise.all([
-    import("@vueup/vue-quill"),
-    //@ts-ignore
-    import("quill-image-uploader"),
-  ]);
+function selectAction(action: ActionI) {
+  action.result();
+  action.selected = !action.selected;
+}
 
-  Quill.register("modules/imageUploader", ImageUploader.default);
-
-  let doc = editor.value;
-  const fullToolbarOptions = [
-    [{ header: [1, 2, 3, false] }],
-    ["bold", "italic"],
-    ["clean"],
-    ["image"],
-  ];
-  if (!doc) return;
-  let quill = new Quill(doc, {
-    theme: "snow",
-    modules: {
-      toolbar: {
-        container: fullToolbarOptions,
-      },
-      imageUploader: {
-        async upload(file: File) {
-          let formData = new FormData();
-          formData.append("images", file);
-          let image = await $fetch("/api/tempimage", {
-            method: "POST",
-            body: formData,
-          });
-          emits("imageUploaded", image);
-          return image.src;
-        },
-      },
-    },
-  });
-
-  quill.on("text-change", (d, o, s) => {
-    emits("update:modelValue", quill.root.innerHTML);
-  });
-});
+function keyDownFormat(event: KeyboardEvent) {
+  if (
+    event.key === "Enter" &&
+    queryCommandValue(formatBlock) === "blockquote"
+  ) {
+    setTimeout(() => exec(formatBlock, `<${defaultParagraphSeparator}>`), 0);
+  }
+}
+interface ActionI {
+  icon: string;
+  title: string;
+  result: Function;
+  selected: Boolean;
+}
+let defaultActions = ref<ActionI[]>([
+  {
+    icon: "<b>B</b>",
+    title: "Bold",
+    result: () => exec("bold"),
+    selected: false,
+  },
+  {
+    icon: "<i>I</i>",
+    title: "Italic",
+    result: () => exec("italic"),
+    selected: false,
+  },
+  {
+    icon: "<u>U</u>",
+    title: "Underline",
+    result: () => exec("underline"),
+    selected: false,
+  },
+  {
+    icon: "<strike>S</strike>",
+    title: "Strike-through",
+    result: () => exec("strikeThrough"),
+    selected: false,
+  },
+  {
+    icon: "<b>H<sub>1</sub></b>",
+    title: "Heading 1",
+    result: () => exec(formatBlock, "<h1>"),
+    selected: false,
+  },
+  {
+    icon: "<b>H<sub>2</sub></b>",
+    title: "Heading 2",
+    result: () => exec(formatBlock, "<h2>"),
+    selected: false,
+  },
+  {
+    icon: "&#182;",
+    title: "Paragraph",
+    result: () => exec(formatBlock, "<p>"),
+    selected: false,
+  },
+  {
+    icon: "&#8220; &#8221;",
+    title: "Quote",
+    result: () => exec(formatBlock, "<blockquote>"),
+    selected: false,
+  },
+  {
+    icon: "&#35;",
+    title: "Ordered List",
+    result: () => exec("insertOrderedList"),
+    selected: false,
+  },
+  {
+    icon: "&#8226;",
+    title: "Unordered List",
+    result: () => exec("insertUnorderedList"),
+    selected: false,
+  },
+  {
+    icon: "&lt;/&gt;",
+    title: "Code",
+    result: () => exec(formatBlock, "<pre>"),
+    selected: false,
+  },
+  {
+    icon: "&#8213;",
+    title: "Horizontal Line",
+    result: () => exec("insertHorizontalRule"),
+    selected: false,
+  },
+]);
 </script>
-<style scoped>
-/* Basic editor styles */
-.ProseMirror,
-code {
-  background-color: rgba(#616161, 0.1);
-  color: #616161;
-}
-
-.content {
-  padding: 1rem 0 0;
-}
-h3 {
-  margin: 1rem 0 0.5rem;
-}
-
-pre {
-  border-radius: 5px;
-  color: #333;
-}
-
-code {
-  display: block;
-  white-space: pre-wrap;
-  font-size: 0.8rem;
-  padding: 0.75rem 1rem;
-  background-color: #e9ecef;
-  color: #495057;
-}
-</style>

@@ -14,13 +14,11 @@
       <textarea class="border rounded p-2" type="text"></textarea>
     </div>
     <editor @image-uploaded="imageUploaded" v-model="text"></editor>
-
-    <preview class="preview" :markdown="text"></preview>
+    <div v-html="text"></div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import preview from "@/components/preview.vue";
 import editor from "@/components/editor.vue";
 import { ImageI } from "~~/types";
 let text = ref("## Nice");
